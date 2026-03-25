@@ -1,25 +1,55 @@
 # OneVideoGo
 
-Bu proje, Go dilinde goroutine, channel, `select`, `context` ve `WaitGroup` gibi eszamanlilik konularini kucuk orneklerle anlatir.
+Bu depo, Go’da **eşzamanlılık** (goroutine, channel, `select`, `context`, `WaitGroup`) ve **arayüz (interface)** konularını küçük, çalıştırılabilir örneklerle toplar.
 
-## Klasorler
+## Klasörler
 
-- `main.go`: `sync.WaitGroup` ile birden fazla goroutine'in tamamlanmasini bekleme ornegi.
-- `Buffered_Channel/`: Buffered channel kullaniminin temel ornegi.
-- `Unbuffered_Channel/`: Unbuffered channel ile ilgili farkli senaryolar.
-- `Select/`: `select` yapisi ile birden fazla kanali dinleme ornegi.
-- `Context/`: `context` ile veri tasima ve iptal mantiginin giris seviyesi ornegi.
+### Kök dizin
 
-## Amac
+- `main.go`: `sync.WaitGroup` ile birden fazla goroutine’in bitmesini bekleme örneği.
 
-- Her ornekte kodun icine Turkce aciklama yorumlari eklendi.
-- Her alt klasor icin o klasordeki ornegi aciklayan bir `README.md` dosyasi hazirlandi.
-- Ornekler, Go'da eszamanli programlama konularini daha kolay takip edebilmek icin sade tutuldu.
+### Arayüz örnekleri
 
-## Calistirma
+- `Interface1/`: `iletisim` arayüzü; `*sayilar` ve `sayi` türleriyle aynı arayüz değişkeninde çok biçimlilik.
+- `Interface2/`: `IShippable` ve farklı ürün türleri (`Books`, `Electronics`); dilim üzerinden toplam kargo hesabı.
+- `Interface3/`: `ICoder` arayüzü; `XCodec` ve `YCodec` ile tek kutuda hem `Encode` hem `Decode`.
 
-Her ornegi ilgili klasore girip su komutla calistirabilirsiniz:
+### Kanallar
+
+- `Buffered_Channel/`: Tamponlu channel kullanımı.
+- `Unbuffered_Channel1/`, `Unbuffered_Channel2/`, `Unbuffered_Channel3/`: Tamponsuz channel senaryoları (her biri ayrı giriş dosyası: `main.go`, `main2.go`, `main3.go`).
+
+### Diğer
+
+- `Select/`: Birden fazla kanalı `select` ile dinleme.
+- `Context/`: `context` ile iptal ve değer taşıma girişi.
+
+Bazı alt klasörlerde konuya özel `README.md` dosyaları da vardır.
+
+## Amaç
+
+- Örnek kodlarda Türkçe açıklama yorumları kullanılmaya çalışıldı.
+- Eşzamanlılık ve arayüzleri ayrı klasörlerde izole ederek takip etmeyi kolaylaştırmak.
+
+## Çalıştırma
+
+`go.mod` dosyası proje kökündedir. Bir örneği çalıştırmak için o örneğin klasörüne girip `go run .` kullanın; paketteki tüm `*.go` dosyaları birlikte derlenir.
+
+Örnek:
 
 ```bash
-go run main.go
+cd Interface3
+go run .
+```
+
+Kök dizindeki `WaitGroup` örneği için proje kökünde:
+
+```bash
+go run .
+```
+
+`Interface1` gibi tek dosya adı farklı olan paketlerde de aynı klasörde `go run .` yeterlidir. İsterseniz doğrudan dosya yolu da verebilirsiniz:
+
+```bash
+go run Interface1/1.iface.go
 ```
