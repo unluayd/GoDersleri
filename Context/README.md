@@ -1,21 +1,34 @@
-# Context Ornegi
+# Context — İstek bağlamı ve değer taşıma
 
-Bu klasor, Go dilinde `context` kullaniminin temel mantigini gosteren basit bir ornek icerir.
+`context` paketi, özellikle ağ servisleri ve goroutine ağaçlarında **iptal süresi**, **deadline** ve **istek kapsamındaki anahtar–değer** bilgisini taşımak için kullanılır. Bu klasördeki örnek, öncelikle **`WithValue` ile zincir boyunca veri taşımayı** gösterir.
 
-## Dosyalar
+## Dosya
 
-- `main.go`: Context icine veri ekleme, fonksiyonlar arasinda tasima ve timeout senaryosunu yorum satirlariyla gosteren ornek kod.
+| Dosya | Açıklama |
+|--------|-----------|
+| `main.go` | `Product`, global `productChannel`, `main`, `F1`–`F3`, yorum satırlarında timeout senaryosu, `getProductDetailsFromExternalService`. |
 
-## Kodun Ozeti
+## Aktif olarak çalışan kısım
 
-- `context.Background()` ile temel bir context olusturulur.
-- `context.WithValue` kullanilarak context icine `correlation-id` eklenir.
-- `F1`, `F2` ve `F3` fonksiyonlari ayni context'i alip bu degeri okur.
-- Dosyada yorum satiri olarak timeout ve `select` ile iptal yonetimi ornegi de bulunur.
-- `getProductDetailsFromExternalService`, gecikmeli bir dis servis cagrisini simule eder.
+1. `ctx := context.Background()` — kök context.  
+2. `ctx = context.WithValue(ctx, "correlation-id", "abc123")` — (dikkat: üretimde genelde özel tip anahtar kullanılır; string anahtar çakışmaya açıktır, burada öğretim basitliği var.)  
+3. `F1(ctx)` → `F2(ctx)` → `F3(ctx)` — aynı `ctx` iletilir; her biri `ctx.Value("correlation-id")` okur ve yazdırır.
 
-## Calistirma
+## Yorum satırlarındaki bölüm
+
+`WithTimeout`, `defer cancel()`, goroutine ile uzun süren iş ve `select` içinde `case <-ctx.Done()` deseni, zaman aşımında ana akışın nasıl kurtulacağını anlatmak için bırakılmıştır; çalıştırmak için yorumları kaldırıp uyumlu hale getirmeniz gerekir.
+
+## `getProductDetailsFromExternalService`
+
+10 saniye uyuyup sonra `productChannel` üzerinden `Product` gönderir; uzun süren dış servis çağrısının kaba bir simülasyonudur.
+
+## Çalıştırma
 
 ```bash
-go run main.go
+cd Context
+go run .
 ```
+
+## Okuma önerisi
+
+Resmi rehber: [https://pkg.go.dev/context](https://pkg.go.dev/context)

@@ -1,21 +1,27 @@
-# Buffered Channel Ornegi
+# Buffered_Channel — Kapasiteli kanal
 
-Bu klasor, Go dilinde `buffered channel` kullanimini gosteren basit bir ornek icerir.
+Tamponlu (**buffered**) channel, belirli sayıda değeri **alıcı olmadan geçici olarak** tutabilir. Bu örnek, kapasite `4` olan bir `chan int` üzerinden gönderimin nasıl ilerlediğini ve `range` ile okumanın nasıl yapıldığını gösterir.
 
-## Dosyalar
+## Dosya
 
-- `main.go`: Buffered channel olusturma, veri gonderme ve veri alma mantigini gosteren ornek kod.
+| Dosya | Açıklama |
+|--------|-----------|
+| `main.go` | `make(chan int, 4)`, gönderici goroutine, alıcı goroutine, `close`. |
 
-## Kodun Ozeti
+## Önemli noktalar
 
-- `make(chan int, 4)` ile kapasitesi 4 olan bir kanal olusturulur.
-- Ilk goroutine, `0` ile `9` arasindaki sayilari kanala gonderir.
-- Gonderim bittiginde kanal `close(myChannel)` ile kapatilir.
-- Ikinci goroutine, kanaldaki verileri `range` ile okuyup ekrana yazar.
-- `time.Sleep` cagrilari, ornekte goroutine calismasini gozlemlemeyi kolaylastirmak icin kullanilmistir.
+- `make(chan int, 4)` — kanal en fazla 4 `int` tutabilir; dolmadıkça gönderici bloklanmayabilir (alıcı yavaş olsa bile, tampon dolana kadar).  
+- Gönderici: `0…9` değerlerini yollar, bittiğinde `close(myChannel)` çağırır. Kapalı kanala yazmak panic üretir; bu yüzden kapatma genelde sadece gönderen tarafta yapılır.  
+- Alıcı goroutine: `for data := range myChannel` ile kapanana kadar okur.  
+- `time.Sleep` çağrıları çıktıyı ayırmak ve gönderim/alım hız farkını gözlemlemek için eklenmiştir.
 
-## Calistirma
+## Tamponsuz kanal ile fark
+
+Tamponsuz kanalda her `send`, eşzamanlı bir `receive` olmadan ilerlemez. Burada ise tampon dolu değilse gönderici kısa süre ilerleyebilir.
+
+## Çalıştırma
 
 ```bash
-go run main.go
+cd Buffered_Channel
+go run .
 ```

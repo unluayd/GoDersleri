@@ -1,55 +1,89 @@
-# OneVideoGo
+# GoDersleri — Go Eğitim Serisi
 
-Bu depo, Go’da **eşzamanlılık** (goroutine, channel, `select`, `context`, `WaitGroup`) ve **arayüz (interface)** konularını küçük, çalıştırılabilir örneklerle toplar.
+Bu depo, **Go programlama dili** için adım adım ilerleyebileceğiniz küçük örneklerden oluşan bir **eğitim serisidir**. Amaç; **eşzamanlılık** (goroutine, channel, `select`, `context`, `WaitGroup`) ve **arayüz (interface)** gibi konuları yalın kod ve Türkçe yorumlarla pekiştirmektir.
 
-## Klasörler
+Modül adı: `onevideogo` (`go.mod`). Her alt klasördeki örneğin ne yaptığını o klasördeki `README.md` dosyası ayrıntılı anlatır.
 
-### Kök dizin
+---
 
-- `main.go`: `sync.WaitGroup` ile birden fazla goroutine’in bitmesini bekleme örneği.
+## Seride neler var?
 
-### Arayüz örnekleri
+| Konu | Klasör | Dosya |
+|------|--------|--------|
+| Goroutine’leri topluca beklemek | *(kök)* | `main.go` |
+| Tamponlu kanal | `Buffered_Channel/` | `main.go` |
+| Tamponsuz kanal — temel eşleşme | `Unbuffered_Channel1/` | `main.go` |
+| Tamponsuz kanal — döngü, kapatma | `Unbuffered_Channel2/` | `main2.go` |
+| Tamponsuz kanal — çoklu alıcı | `Unbuffered_Channel3/` | `main3.go` |
+| `select` ile çoklu kanal | `Select/` | `main.go` |
+| `context` — değer taşıma | `Context/` | `main.go` |
+| Interface — tek metot, iki tür | `Interface1/` | `1.iface.go` |
+| Interface — dilim ve işlev | `Interface2/` | `2.iface.go` |
+| Interface — çok metotlu sözleşme | `Interface3/` | `main.go` |
 
-- `Interface1/`: `iletisim` arayüzü; `*sayilar` ve `sayi` türleriyle aynı arayüz değişkeninde çok biçimlilik.
-- `Interface2/`: `IShippable` ve farklı ürün türleri (`Books`, `Electronics`); dilim üzerinden toplam kargo hesabı.
-- `Interface3/`: `ICoder` arayüzü; `XCodec` ve `YCodec` ile tek kutuda hem `Encode` hem `Decode`.
+---
 
-### Kanallar
+## Kök dizin: `main.go` (`sync.WaitGroup`)
 
-- `Buffered_Channel/`: Tamponlu channel kullanımı.
-- `Unbuffered_Channel1/`, `Unbuffered_Channel2/`, `Unbuffered_Channel3/`: Tamponsuz channel senaryoları (her biri ayrı giriş dosyası: `main.go`, `main2.go`, `main3.go`).
+Üç anonim goroutine paralel başlatılır; her biri `defer wg.Done()` ile sayacı azaltır. `wg.Add(3)` ile beklenen iş sayısı ayarlanır; `wg.Wait()` ana goroutine’i üçü de bitene kadar bloklar. Böylece **“arka plandaki işler bitsin, sonra devam edeyim”** deseni gösterilir. Çıktıda toplam süre `time.Since` ile yazdırılır (üç `Sleep(3s)` paralel olduğu için yaklaşık 3 saniye sürer, sırayla değil).
 
-### Diğer
+---
 
-- `Select/`: Birden fazla kanalı `select` ile dinleme.
-- `Context/`: `context` ile iptal ve değer taşıma girişi.
+## Alt klasörler (özet)
 
-Bazı alt klasörlerde konuya özel `README.md` dosyaları da vardır.
+Ayrıntı için ilgili klasördeki **README.md** dosyasına bakın.
 
-## Amaç
+- **`Buffered_Channel/`** — Kapasiteli kanal (`make(chan T, n)`); gönderici `close` eder, alıcı `range` veya döngü ile okur. Tampon sayesinde gönderen, alıcı hazır olmasa da (tampon dolmadıkça) ilerleyebilir.
+- **`Unbuffered_Channel1/`** — Tamponsuz kanalda gönderim–alım **eşzamanlı eşleşmesi**; `done` kanalı ile alıcı bittiğinde `main`’in ilerlemesi.
+- **`Unbuffered_Channel2/`** — `0…10` gönderimi, `close`, alıcı tarafta `data, ok := <-ch` ile kanal kapanınca döngüden çıkma.
+- **`Unbuffered_Channel3/`** — İki alıcı goroutine aynı kanalı dinler; **tek bir değer yalnızca bir alıcıya** gider (diğeri bloklanır — bu örnekte ikinci değer gönderilmediği için dikkat: pratikte deadlock riski vardır, eğitim amaçlı davranış gözlemi).
+- **`Select/`** — İki kanaldan hangisi önce hazırsa `select` ile o case çalışır; `default` ile beklemeden dönüş (busy-wait + `Sleep` ile örnek yumuşatılmış).
+- **`Context/`** — `Background`, `WithValue`; `correlation-id` gibi istek bağlamını `F1→F2→F3` zincirinde taşıma. Yorum satırlarında timeout + `select` ile iptal deseni de gösterilir.
+- **`Interface1/`** — Küçük `iletisim` arayüzü; `*sayilar` (pointer alıcı) ve `sayi` (int takma adı, değer alıcı) aynı değişkende kullanılır.
+- **`Interface2/`** — `IShippable`; `Books` / `Electronics` ve `[]IShippable` üzerinden `CalculateShippingCost` ile arayüze dayalı fonksiyon.
+- **`Interface3/`** — `ICoder` ile `Encode` + `Decode`; `XCodec` / `YCodec` çok biçimliliği.
 
-- Örnek kodlarda Türkçe açıklama yorumları kullanılmaya çalışıldı.
-- Eşzamanlılık ve arayüzleri ayrı klasörlerde izole ederek takip etmeyi kolaylaştırmak.
+---
+
+## Önerilen çalışma sırası
+
+1. Kök `main.go` (WaitGroup)  
+2. `Unbuffered_Channel1` → `2` → `3`  
+3. `Buffered_Channel`  
+4. `Select`  
+5. `Context`  
+6. `Interface1` → `Interface2` → `Interface3`  
+
+Sıra ihtiyaca göre değiştirilebilir; kanalları `select` ve `context` öncesinde görmek genelde daha kolaydır.
+
+---
 
 ## Çalıştırma
 
-`go.mod` dosyası proje kökündedir. Bir örneği çalıştırmak için o örneğin klasörüne girip `go run .` kullanın; paketteki tüm `*.go` dosyaları birlikte derlenir.
-
-Örnek:
+Proje kökünde `go.mod` bulunur. Örnek klasörüne girip paketi çalıştırın:
 
 ```bash
-cd Interface3
+cd Buffered_Channel
 go run .
 ```
 
-Kök dizindeki `WaitGroup` örneği için proje kökünde:
+Kökteki WaitGroup örneği:
 
 ```bash
+cd /path/to/GoDersleri
 go run .
 ```
 
-`Interface1` gibi tek dosya adı farklı olan paketlerde de aynı klasörde `go run .` yeterlidir. İsterseniz doğrudan dosya yolu da verebilirsiniz:
+Belirli bir dosya:
 
 ```bash
 go run Interface1/1.iface.go
+go run Unbuffered_Channel2/main2.go
 ```
+
+---
+
+## Katkı ve notlar
+
+- Kod içi açıklamalar mümkün olduğunca **Türkçe** tutulmuştur.  
+- Bu seri, resmi dokümantasyonun yerine geçmez; `https://go.dev/doc/` ile birlikte kullanılmalıdır.
